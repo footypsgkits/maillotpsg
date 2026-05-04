@@ -1,0 +1,199 @@
+// Schéma Prisma — boutique maillots PSG
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  longContent String?   // Contenu SEO long (markdown léger) affiché sur la page catégorie
+  metaTitle   String?
+  metaDesc    String?
+  position    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+}
+
+model Product {
+  id               String         @id @default(cuid())
+  name             String
+  slug             String         @unique
+  description      String
+  shortDescription String?
+  price            Float
+  oldPrice         Float?
+  sku              String?        @unique
+  stock            Int            @default(0)
+
+  // Type / saison / équipe
+  seasonLabel      String?        // libellé saison (ex "2025-2026")
+  team             String         @default("PSG")
+  kind             String         @default("domicile")
+  gender           String         @default("homme")
+
+  // Floquage
+  flockingAvailable Boolean       @default(true)
+  flockingPrice     Float         @default(15)
+
+  // SEO
+  metaTitle        String?
+  metaDesc         String?
+  keywords         String?
+
+  // Avis (AggregateRating schema)
+  ratingValue      Float?
+  ratingCount      Int            @default(0)
+
+  // Statut
+  active           Boolean        @default(true)
+  featured         Boolean        @default(false)
+
+  categoryId       String
+  category         Category       @relation(fields: [categoryId], references: [id])
+
+  seasonId         String?
+  seasonRel        Season?        @relation(fields: [seasonId], references: [id])
+
+  images           ProductImage[]
+  sizes            ProductSize[]
+  players          ProductPlayer[]
+
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([categoryId])
+  @@index([active])
+  @@index([seasonId])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  url       String
+  alt       String?
+  position  Int     @default(0)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+model ProductSize {
+  id        String  @id @default(cuid())
+  label     String
+  kind      String  @default("adulte")
+  stock     Int     @default(0)
+  position  Int     @default(0)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+// Joueur (effectif actuel ou légende). Utilisé pour pages /joueur/[slug]
+model Player {
+  id          String          @id @default(cuid())
+  name        String          // ex: "Kylian Mbappé"
+  slug        String          @unique // ex: "mbappe"
+  firstName   String?
+  lastName    String?
+  number      Int?            // numéro maillot
+  position    String?         // attaquant, défenseur, milieu, gardien
+  nationality String?         // FR, MA, GE, IT, ES, BR…
+  era         String          @default("actuel") // actuel | legende
+  bio         String          // ~300-500 mots
+  metaTitle   String?
+  metaDesc    String?
+  imageUrl    String?
+  active      Boolean         @default(true)
+  position2   Int             @default(0) // ordre d'affichage
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  products    ProductPlayer[]
+}
+
+// Many-to-many : un produit peut être lié à plusieurs joueurs (ex: maillot domicile floquable Mbappé/Dembélé/Hakimi)
+model ProductPlayer {
+  productId String
+  playerId  String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  player    Player  @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@id([productId, playerId])
+  @@index([playerId])
+}
+
+// Saison du PSG. Utilisée pour pages /saison/[slug]
+model Season {
+  id          String    @id @default(cuid())
+  label       String    // "2025-2026"
+  slug        String    @unique // "2025-2026" ou "retro-2001-2002"
+  era         String    @default("actuelle") // actuelle | recente | retro
+  shirtMaker  String?   // Nike, Hechter, etc.
+  description String    // ~400-800 mots
+  metaTitle   String?
+  metaDesc    String?
+  imageUrl    String?
+  active      Boolean   @default(true)
+  position    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+}
+
+// Articles SEO long-form
+model Guide {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  excerpt     String   // résumé 1-2 phrases
+  content     String   // markdown ou HTML
+  metaTitle   String?
+  metaDesc    String?
+  keywords    String?
+  imageUrl    String?
+  published   Boolean  @default(true)
+  publishedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Order {
+  id        String      @id @default(cuid())
+  email     String
+  fullName  String
+  phone     String?
+  address   String
+  city      String
+  zip       String
+  country   String      @default("France")
+  notes     String?
+  total     Float
+  status    String      @default("nouveau")
+  createdAt DateTime    @default(now())
+  items     OrderItem[]
+}
+
+model OrderItem {
+  id             String  @id @default(cuid())
+  orderId        String
+  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId      String
+  productName    String
+  productSlug    String
+  size           String
+  flocking       Boolean @default(false)
+  flockingName   String?
+  flockingNumber String?
+  unitPrice      Float
+  quantity       Int     @default(1)
+
+  @@index([orderId])
+}

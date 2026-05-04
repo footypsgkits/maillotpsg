@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+:root {
+  --psg-blue: #004170;
+  --psg-red: #ed1c24;
+  --psg-dark: #001a35;
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-psg-blue: var(--psg-blue);
+  --color-psg-red: var(--psg-red);
+  --color-psg-dark: var(--psg-dark);
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body { background: var(--background); color: var(--foreground); }
+
+body {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
