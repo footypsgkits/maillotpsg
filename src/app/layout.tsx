@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { SITE, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 import { CartIndicator } from "@/components/CartIndicator";
+import { MobileMenu } from "@/components/MobileMenu";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -90,17 +91,20 @@ function SiteHeader() {
           <span className="hidden sm:inline text-white/60">{SITE.email}</span>
         </div>
       </div>
-      <div className="mx-auto max-w-7xl px-4 h-18 py-3 flex items-center justify-between gap-6">
-        <Link href="/" aria-label="Maillot-PSG accueil" className="flex items-center">
-          <Image
-            src="/logo.png"
-            alt="Maillot PSG"
-            width={160}
-            height={48}
-            priority
-            className="h-10 w-auto"
-          />
-        </Link>
+      <div className="mx-auto max-w-7xl px-4 h-18 py-3 flex items-center justify-between gap-4 md:gap-6">
+        <div className="flex items-center gap-2">
+          <MobileMenu />
+          <Link href="/" aria-label="Maillot-PSG accueil" className="flex items-center">
+            <Image
+              src="/logo.png"
+              alt="Maillot PSG"
+              width={160}
+              height={48}
+              priority
+              className="h-10 w-auto"
+            />
+          </Link>
+        </div>
         <nav className="hidden md:flex items-center gap-5 text-sm font-medium">
           <Link href="/maillots/domicile" className="hover:text-psg-red">Domicile</Link>
           <Link href="/maillots/exterieur" className="hover:text-psg-red">Extérieur</Link>
